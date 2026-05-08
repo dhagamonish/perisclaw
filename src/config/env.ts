@@ -7,7 +7,7 @@ const envSchema = z.object({
   NODE_ENV: z.enum(['development', 'production', 'test']).default('development'),
   GEMINI_API_KEY: z.string().default(''),
   GROQ_API_KEY: z.string().default(''),
-  DASHBOARD_PORT: z.string().default('3000'),
+  DASHBOARD_PORT: z.string().default(process.env.PORT || '3000'),
   AUTHORIZED_USER_NUMBER: z.string().default(''),
   SUPABASE_URL: z.string().default(''),
   SUPABASE_ANON_KEY: z.string().default(''),
