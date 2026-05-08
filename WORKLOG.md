@@ -1,0 +1,32 @@
+# Worklog: Astra EA
+
+## 2026-05-08
+- **Session 1**: Project Kickoff.
+    - Defined Product Identity and MVP scope.
+    - Established "Antigravity Operating System" for the workspace.
+    - Created core documentation: PRD, Architecture, Tasks, and Rules.
+    - Status: Workspace foundation complete. Ready for implementation.
+- **Session 2**: Foundation Implementation.
+    - Initialized npm project with ESM support.
+    - Installed core dependencies: TypeScript, Zod, Pino, Supabase.
+    - Configured strict `tsconfig.json`.
+    - Implemented modular logger and Zod-validated environment config.
+    - Status: Infrastructure ready for feature implementation.
+- **Session 3**: WhatsApp Connectivity (Phase 1).
+    - Integrated Baileys for WhatsApp Web socket management.
+    - Implemented QR code generation in terminal.
+    - Configured automatic reconnection and multi-file auth persistence.
+    - Connected listener to the main application entry point.
+    - Status: WhatsApp Bridge operational. Ready for scan.
+- **Session 4**: Intent Engine (Phase 2).
+    - Integrated OpenAI SDK for GPT-4o and Whisper-1.
+    - Implemented `ai.ts` service with structured JSON output and Whisper transcription.
+    - Updated `whatsapp.ts` to filter for owner messages and handle voice notes.
+    - Implemented basic "Stoic" confirmation loop.
+    - Status: Astra can now understand and summarize text/voice. Integration logic pending.
+- **Session 5**: Pivot to Google Gemini.
+    - Swapped OpenAI for Google Gemini 1.5 Flash.
+    - Implemented native voice processing (no Whisper needed).
+    - Updated environment config for `GEMINI_API_KEY`.
+    - Refactored `whatsapp.ts` for cleaner message flow.
+    - Status: Ready for free-tier intelligent EA operations.
