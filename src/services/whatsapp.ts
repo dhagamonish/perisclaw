@@ -94,10 +94,15 @@ export async function initializeWhatsApp() {
           continue;
         }
 
-        logger.info({ from: msg.key.remoteJid, type: m.type }, 'Incoming Message');
-
         let intent: AstraIntent | null = null;
         let text = '';
+        if (msg.message?.conversation) {
+          text = msg.message.conversation;
+        } else if (msg.message?.extendedTextMessage?.text) {
+          text = msg.message.extendedTextMessage.text;
+        }
+
+        logger.info({ from: msg.key.remoteJid, text: text }, 'Incoming Message');
 
         try {
           if (msg.message?.audioMessage) {
