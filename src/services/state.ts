@@ -1,34 +1,33 @@
 import { AstraIntent } from './ai.js';
 
-interface PendingAction {
-  intent: AstraIntent;
-  timestamp: number;
-}
+class GlobalState {
+  private activeSock: any = null;
+  private pendingActions: Map<string, AstraIntent> = new Map();
 
-const pendingActions = new Map<string, PendingAction>();
-
-// Actions expire after 5 minutes
-const EXPIRY_MS = 5 * 60 * 1000;
-
-export function setPendingAction(jid: string, intent: AstraIntent) {
-  pendingActions.set(jid, {
-    intent,
-    timestamp: Date.now()
-  });
-}
-
-export function getPendingAction(jid: string): AstraIntent | null {
-  const action = pendingActions.get(jid);
-  if (!action) return null;
-
-  if (Date.now() - action.timestamp > EXPIRY_MS) {
-    pendingActions.delete(jid);
-    return null;
+  setSock(sock: any) {
+    this.activeSock = sock;
   }
 
-  return action.intent;
+  getSock() {
+    return this.activeSock;
+  }
+
+  setPendingAction(jid: string, intent: AstraIntent) {
+    this.pendingActions.set(jid, intent);
+  }
+
+  getPendingAction(jid: string) {
+    return this.pendingActions.get(jid);
+  }
+
+  clearPendingAction(jid: string) {
+    this.pendingActions.delete(jid);
+  }
 }
 
-export function clearPendingAction(jid: string) {
-  pendingActions.delete(jid);
-}
+export const state = new GlobalState();
+
+// Compatibility exports for existing code
+export const setPendingAction = (jid: string, intent: AstraIntent) => state.setPendingAction(jid, intent);
+export const getPendingAction = (jid: string) => state.getPendingAction(jid);
+export const clearPendingAction = (jid: string) => state.clearPendingAction(jid);

@@ -3,6 +3,7 @@ import { env } from './config/env.js';
 import { initializeWhatsApp } from './services/whatsapp.js';
 import { startDashboard } from './services/dashboard.js';
 import { checkReminders } from './services/reminders.js';
+import { state } from './services/state.js';
 
 async function main() {
   logger.info('Astra EA starting...');
@@ -15,12 +16,13 @@ async function main() {
   if (!env.SUPABASE_URL) logger.warn('SUPABASE_URL is missing. Persistence will be disabled.');
 
   // Initialize WhatsApp Bridge
-  const sock = await initializeWhatsApp();
+  await initializeWhatsApp();
 
   // Start Reminder Polling (every 60 seconds)
   setInterval(async () => {
-    if (sock) {
-      await checkReminders(sock);
+    const activeSock = state.getSock();
+    if (activeSock) {
+      await checkReminders(activeSock);
     }
   }, 60000);
   

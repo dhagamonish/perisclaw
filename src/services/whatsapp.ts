@@ -12,24 +12,27 @@ import logger from './logger.js';
 import path from 'path';
 import { env } from '../config/env.js';
 import { parseIntent, processVoiceNote, AstraIntent } from './ai.js';
-import { setPendingAction, getPendingAction, clearPendingAction } from './state.js';
+import { state, setPendingAction, getPendingAction, clearPendingAction } from './state.js';
 import { addReminder } from './reminders.js';
 import { createCalendarEvent, getAuthUrl } from './google.js';
 import { useSupabaseAuthState } from './auth.js';
 
 export async function initializeWhatsApp() {
-  const { state, saveCreds } = await useSupabaseAuthState('astra_production_v1');
+  const { state: authState, saveCreds } = await useSupabaseAuthState('astra_production_v1');
   const { version } = await fetchLatestBaileysVersion();
 
   logger.info({ version }, 'Starting WhatsApp Socket');
 
   const sock: WASocket = makeWASocket({
     version,
-    auth: state,
+    auth: authState,
     printQRInTerminal: false,
     logger: logger as any,
     browser: ['Windows', 'Chrome', '114.0.5735.199'],
   });
+
+  // Store active socket in global state
+  state.setSock(sock);
 
   // Handle Pairing Code if phone number is provided
   if (env.WA_PHONE_NUMBER && !sock.authState.creds.registered) {
