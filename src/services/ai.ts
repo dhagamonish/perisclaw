@@ -36,16 +36,13 @@ Output JSON Format:
   "data": { ... },
   "confidence": 0.0 to 1.0,
   "suggested_actions": [
-    { "id": "1", "label": "🚀 Send Now", "type": "GMAIL", "data": { "action": "send", "to": "...", "subject": "...", "body": "..." } },
-    { "id": "2", "label": "📝 Save Draft", "type": "GMAIL", "data": { "action": "draft", "to": "...", "subject": "...", "body": "..." } }
+    { "id": "1", "label": "🚀 Send Now", "type": "GMAIL", "summary": "Draft and send email", "data": { ... } }
   ],
-  "extracted_memories": [
-    { "content": "I promised to send the report", "type": "COMMITMENT", "due_at": "ISO_UTC" }
-  ]
 }
 
 IMPORTANT RULES:
-- ALWAYS use the exact keys "id" and "label" in suggested_actions.
+- ALWAYS include a "summary" field in every suggested_action.
+- ALWAYS use the exact keys "id", "label", "type", and "summary" in suggested_actions.
 - ALWAYS provide at least 2-3 'suggested_actions' for GMAIL and CALENDAR requests.
 - For GMAIL, include both 'send' and 'draft' as separate options.
 - Use high-impact emojis in the 'label'.

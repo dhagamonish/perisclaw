@@ -162,7 +162,7 @@ async function executeAction(sock: any, msg: any, action: SessionAction) {
     } else if (action.type === 'REMINDER') {
       const reminder = await addReminder({
         user_jid: msg.key.remoteJid!,
-        text: action.summary,
+        text: action.summary || action.label || 'New Reminder',
         due_at: action.data.dueAt || new Date().toISOString(),
         status: 'PENDING'
       });
