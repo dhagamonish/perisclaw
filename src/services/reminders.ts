@@ -23,7 +23,7 @@ export async function addReminder(reminder: Reminder) {
     throw error;
   }
   
-  logger.info({ reminderId: data[0].id }, 'Reminder added to Supabase');
+  logger.info({ reminderId: data[0].id, dueAt: reminder.due_at, text: reminder.text }, 'Reminder added to Supabase');
   return data[0];
 }
 
