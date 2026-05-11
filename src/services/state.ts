@@ -1,33 +1,55 @@
-import { AstraIntent } from './ai.js';
+export interface SessionAction {
+  id: string;
+  label: string;
+  type: 'GMAIL' | 'CALENDAR' | 'REMINDER' | 'CANCEL';
+  data: any;
+  summary: string;
+}
 
 class GlobalState {
-  private activeSock: any = null;
-  private pendingActions: Map<string, AstraIntent> = new Map();
+  private sock: any = null;
+  // Map of User JID -> List of currently active menu options
+  private sessions: Map<string, SessionAction[]> = new Map();
 
-  setSock(sock: any) {
-    this.activeSock = sock;
+  setSock(s: any) {
+    this.sock = s;
   }
 
   getSock() {
-    return this.activeSock;
+    return this.sock;
   }
 
-  setPendingAction(jid: string, intent: AstraIntent) {
-    this.pendingActions.set(jid, intent);
+  setSession(jid: string, actions: SessionAction[]) {
+    this.sessions.set(jid, actions);
   }
 
+  getSession(jid: string): SessionAction[] | undefined {
+    return this.sessions.get(jid);
+  }
+
+  clearSession(jid: string) {
+    this.sessions.delete(jid);
+  }
+
+  // Legacy compatibility methods (mapped to sessions)
   getPendingAction(jid: string) {
-    return this.pendingActions.get(jid);
+    const session = this.getSession(jid);
+    return session ? session[0] : null;
+  }
+
+  setPendingAction(jid: string, action: any) {
+    this.setSession(jid, [{ 
+      id: '1', 
+      label: 'Confirm', 
+      type: action.type, 
+      data: action.data, 
+      summary: action.summary 
+    }]);
   }
 
   clearPendingAction(jid: string) {
-    this.pendingActions.delete(jid);
+    this.clearSession(jid);
   }
 }
 
 export const state = new GlobalState();
-
-// Compatibility exports for existing code
-export const setPendingAction = (jid: string, intent: AstraIntent) => state.setPendingAction(jid, intent);
-export const getPendingAction = (jid: string) => state.getPendingAction(jid);
-export const clearPendingAction = (jid: string) => state.clearPendingAction(jid);

@@ -22,15 +22,9 @@ Your task is to parse user input into structured JSON intents.
 
 Supported Intent Types:
 1. CALENDAR: Scheduling or listing events.
-   - Actions: "list", "create"
-   - Data for "create": { "summary": string, "startTime": string, "endTime": string, "action": "create" }
-2. GMAIL: Searching, drafting, or sending emails.
-   - Actions: "search", "draft", "send"
-   - Data for "send": { "to": string, "subject": string, "body": string, "action": "send" }
-   - Data for "draft": { "to": string, "subject": string, "body": string, "action": "draft" }
-   - Data for "search": { "query": string, "action": "search" }
+1. CALENDAR: Scheduling or checking meetings.
+2. GMAIL: Sending, drafting, or searching emails.
 3. REMINDER: Setting follow-up tasks.
-   - Data: { "dueAt": "ISO_UTC" }
 4. CLARIFY: When critical info is missing.
 5. UNKNOWN: Chatter or unintelligible.
 
@@ -39,10 +33,19 @@ Output JSON Format:
   "type": "INTENT_TYPE",
   "summary": "Short summary",
   "data": { ... },
-  "confidence": 0.0 to 1.0
+  "confidence": 0.0 to 1.0,
+  "suggested_actions": [
+    { "id": "1", "label": "🚀 Send Now", "type": "GMAIL", "data": { "action": "send", ... } },
+    { "id": "2", "label": "📝 Save Draft", "type": "GMAIL", "data": { "action": "draft", ... } }
+  ]
 }
 
-Output ONLY valid JSON.
+IMPORTANT RULES:
+- ALWAYS provide at least 2-3 'suggested_actions' for GMAIL and CALENDAR requests.
+- For GMAIL, include both 'send' and 'draft' as separate options.
+- Use high-impact emojis in the 'label'.
+- For 'CLARIFY', do not provide suggested actions.
+- Output ONLY valid JSON.
 `;
 
 export async function parseIntent(text: string): Promise<AstraIntent> {
