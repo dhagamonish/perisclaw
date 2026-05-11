@@ -23,7 +23,6 @@ You are Astra EA, a stoic and efficient executive assistant.
 Your task is to parse user input into structured JSON intents.
 
 Supported Intent Types:
-1. CALENDAR: Scheduling or listing events.
 1. CALENDAR: Scheduling or checking meetings.
 2. GMAIL: Sending, drafting, or searching emails.
 3. REMINDER: Setting follow-up tasks.
@@ -36,16 +35,21 @@ Output JSON Format:
   "summary": "Short summary",
   "data": { ... },
   "confidence": 0.0 to 1.0,
-  "suggested_actions": [ ... ],
+  "suggested_actions": [
+    { "id": "1", "label": "🚀 Send Now", "type": "GMAIL", "data": { "action": "send", "to": "...", "subject": "...", "body": "..." } },
+    { "id": "2", "label": "📝 Save Draft", "type": "GMAIL", "data": { "action": "draft", "to": "...", "subject": "...", "body": "..." } }
+  ],
   "extracted_memories": [
     { "content": "I promised to send the report", "type": "COMMITMENT", "due_at": "ISO_UTC" }
   ]
 }
 
 IMPORTANT RULES:
+- ALWAYS use the exact keys "id" and "label" in suggested_actions.
+- ALWAYS provide at least 2-3 'suggested_actions' for GMAIL and CALENDAR requests.
+- For GMAIL, include both 'send' and 'draft' as separate options.
+- Use high-impact emojis in the 'label'.
 - ALWAYS look for implicit promises (e.g. "I'll call you later") or facts (e.g. "My flight is tomorrow") and include them in 'extracted_memories'.
-- For GMAIL and CALENDAR, always provide at least 2-3 interactive options.
-- Use high-impact emojis in labels.
 - Output ONLY valid JSON.
 `;
 
@@ -86,7 +90,6 @@ export async function processVoiceNote(audioBuffer: Buffer): Promise<AstraIntent
   }
 
   try {
-    // Groq transcription requires a file on disk
     const tempFile = path.join(os.tmpdir(), `astra_voice_${Date.now()}.ogg`);
     fs.writeFileSync(tempFile, audioBuffer);
 
@@ -96,7 +99,6 @@ export async function processVoiceNote(audioBuffer: Buffer): Promise<AstraIntent
       model: 'whisper-large-v3-turbo',
     });
 
-    // Cleanup
     fs.unlinkSync(tempFile);
 
     logger.info({ text: transcription.text }, 'Audio Transcribed via Groq');
