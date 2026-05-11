@@ -14,7 +14,7 @@ import { env } from '../config/env.js';
 import { parseIntent, processVoiceNote, AstraIntent } from './ai.js';
 import { state, setPendingAction, getPendingAction, clearPendingAction } from './state.js';
 import { addReminder, scheduleReminder, startupReminderSweep } from './reminders.js';
-import { createCalendarEvent, getAuthUrl } from './google.js';
+import { astraGmail, astraCalendar, getAuthUrl } from './google.js';
 import { useSupabaseAuthState } from './auth.js';
 
 export async function initializeWhatsApp() {
