@@ -13,7 +13,7 @@ import path from 'path';
 import { env } from '../config/env.js';
 import { parseIntent, processVoiceNote, AstraIntent } from './ai.js';
 import { state, setPendingAction, getPendingAction, clearPendingAction } from './state.js';
-import { addReminder } from './reminders.js';
+import { addReminder, scheduleReminder, startupReminderSweep } from './reminders.js';
 import { createCalendarEvent, getAuthUrl } from './google.js';
 import { useSupabaseAuthState } from './auth.js';
 
@@ -75,6 +75,7 @@ export async function initializeWhatsApp() {
       }
     } else if (connection === 'open') {
       logger.info('WhatsApp Connection Opened Successfully');
+      startupReminderSweep(sock);
     }
   });
 
@@ -152,13 +153,15 @@ export async function initializeWhatsApp() {
               
               try {
                 if (pending.type === 'REMINDER') {
-                  await addReminder({
+                  const reminder = await addReminder({
                     user_jid: msg.key.remoteJid!,
                     text: pending.summary,
                     due_at: pending.data.dueAt || new Date().toISOString(),
                     status: 'PENDING'
                   });
-                  await sock.sendMessage(msg.key.remoteJid!, { text: 'Stoic Success: Reminder set.' });
+                  // Immediately schedule in memory
+                  scheduleReminder(sock, reminder);
+                  await sock.sendMessage(msg.key.remoteJid!, { text: 'Stoic success: Reminder set.' });
                 } else if (pending.type === 'CALENDAR') {
                   // TODO: Fetch real tokens from Supabase
                   // For now, we log the intent

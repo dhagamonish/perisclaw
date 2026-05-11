@@ -2,7 +2,7 @@ import logger from './services/logger.js';
 import { env } from './config/env.js';
 import { initializeWhatsApp } from './services/whatsapp.js';
 import { startDashboard } from './services/dashboard.js';
-import { checkReminders } from './services/reminders.js';
+import { startupReminderSweep } from './services/reminders.js';
 import { state } from './services/state.js';
 
 async function main() {
@@ -18,13 +18,11 @@ async function main() {
   // Initialize WhatsApp Bridge
   await initializeWhatsApp();
 
-  // Start Reminder Polling (every 60 seconds)
-  setInterval(async () => {
-    const activeSock = state.getSock();
-    if (activeSock) {
-      await checkReminders(activeSock);
-    }
-  }, 60000);
+  // Run startup reminder sweep and schedule pending tasks
+  const activeSock = state.getSock();
+  if (activeSock) {
+    await startupReminderSweep(activeSock);
+  }
   
   logger.info('Astra EA Bridge Active. Waiting for messages...');
 }
