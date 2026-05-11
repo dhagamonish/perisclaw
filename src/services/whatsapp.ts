@@ -162,11 +162,14 @@ export async function initializeWhatsApp() {
                   // Immediately schedule in memory
                   scheduleReminder(sock, reminder);
                   await sock.sendMessage(msg.key.remoteJid!, { text: 'Stoic success: Reminder set.' });
+                } else if (pending.type === 'GMAIL') {
+                  await sock.sendMessage(msg.key.remoteJid!, { text: 'Astra is searching your Gmail...' });
+                  const result = await astraGmail(pending.data.query, pending.data.action || 'search');
+                  await sock.sendMessage(msg.key.remoteJid!, { text: `📧 *Gmail Result*\n\n${result}` });
                 } else if (pending.type === 'CALENDAR') {
-                  // TODO: Fetch real tokens from Supabase
-                  // For now, we log the intent
-                  logger.info(pending.data, 'Calendar logic would execute here with OAuth2 tokens');
-                  await sock.sendMessage(msg.key.remoteJid!, { text: 'Stoic Success: Calendar event scheduled (OAuth pending).' });
+                  await sock.sendMessage(msg.key.remoteJid!, { text: 'Astra is checking your Calendar...' });
+                  const result = await astraCalendar(pending.data.query || pending.summary);
+                  await sock.sendMessage(msg.key.remoteJid!, { text: `📅 *Calendar Result*\n\n${result}` });
                 }
                 
                 clearPendingAction(msg.key.remoteJid!);
