@@ -27,7 +27,7 @@ export async function initializeWhatsApp() {
     version,
     auth: authState,
     printQRInTerminal: false,
-    logger: logger as any,
+    logger: logger.child({ level: 'silent' }) as any, // Mute the noisy internal engine
     browser: ['Windows', 'Chrome', '114.0.5735.199'],
   });
 
