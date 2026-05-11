@@ -12,9 +12,9 @@ import { env } from '../config/env.js';
 import { parseIntent, processVoiceNote } from './ai.js';
 import { state, SessionAction } from './state.js';
 import { addReminder, scheduleReminder, startupReminderSweep } from './reminders.js';
-import { astraGmail, astraCalendar } from './google.js';
+import { astraGmail, astraCalendar, astraDrive } from './google.js';
 import { useSupabaseAuthState } from './auth.js';
-import { addMemory } from './memory.js';
+import { addMemory, searchMemories } from './memory.js';
 import { analyzeImage } from './vision.js';
 
 export async function initializeWhatsApp() {
@@ -73,7 +73,7 @@ export async function initializeWhatsApp() {
           logger.info('Processing Image Message...');
           const buffer = await downloadMediaMessage(msg, 'buffer', {});
           const intent = await analyzeImage(buffer as Buffer, 'image/jpeg');
-          if (intent) await handleIntent(sock, msg, intent);
+          if (intent) await handleIntent(sock, msg, intent, buffer as Buffer, 'image/jpeg');
           continue;
         }
 
@@ -111,8 +111,24 @@ export async function initializeWhatsApp() {
   });
 }
 
-async function handleIntent(sock: any, msg: any, intent: any) {
+async function handleIntent(sock: any, msg: any, intent: any, buffer?: Buffer, mimeType?: string) {
   if (intent.type === 'UNKNOWN') return;
+
+  // SEMANTIC RECALL
+  if (intent.type === 'MEMORY_QUERY') {
+    const memories = await searchMemories(msg.key.remoteJid!, intent.summary);
+    if (memories.length === 0) {
+      await sock.sendMessage(msg.key.remoteJid!, { text: `🧐 *Astra Recall*\n\nI couldn't find any specific memories matching that query.` });
+    } else {
+      let response = `🧠 *Astra Recall: Found ${memories.length} matches*\n`;
+      memories.forEach((m: any, i: number) => {
+        const date = m.created_at ? new Date(m.created_at).toLocaleDateString() : 'Recent';
+        response += `\n${i+1}. ${m.content} _(${date})_`;
+      });
+      await sock.sendMessage(msg.key.remoteJid!, { text: response });
+    }
+    return;
+  }
 
   // SILENT MEMORY SAVE
   if (intent.extracted_memories && intent.extracted_memories.length > 0) {
@@ -134,7 +150,10 @@ async function handleIntent(sock: any, msg: any, intent: any) {
   // Generate Interactive Hub
   const actions = intent.suggested_actions || [];
   if (actions.length > 0) {
-    state.setSession(msg.key.remoteJid!, actions);
+    // Attach buffer to actions if present
+    const actionsWithMedia = actions.map((a: any) => ({ ...a, buffer, mimeType }));
+    state.setSession(msg.key.remoteJid!, actionsWithMedia);
+    
     let menu = `🕵️‍♂️ *Astra Intelligence Hub*\n\n${intent.summary}\n\n*What should I do?*\n`;
     logger.info({ actions: intent.suggested_actions }, 'Rendering Action Menu');
     actions.forEach((a: any, index: number) => {
@@ -168,6 +187,11 @@ async function executeAction(sock: any, msg: any, action: SessionAction) {
       });
       scheduleReminder(sock, reminder);
       result = 'Stoic success: Reminder set.';
+    } else if (action.type === 'DRIVE') {
+      if (!action.buffer) throw new Error('No media found to upload');
+      const fileName = action.data.fileName || `Astra_Upload_${Date.now()}.jpg`;
+      const link = await astraDrive(fileName, action.mimeType || 'image/jpeg', action.buffer);
+      result = `File successfully vaulted in Google Drive!\n🔗 View: ${link}`;
     }
 
     await sock.sendMessage(msg.key.remoteJid!, { text: `✅ *Task Completed*\n\n${result}` });

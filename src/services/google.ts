@@ -15,7 +15,8 @@ const oauth2Client = new google.auth.OAuth2(
 const SCOPES = [
   'https://www.googleapis.com/auth/gmail.modify',
   'https://www.googleapis.com/auth/calendar.events',
-  'https://www.googleapis.com/auth/calendar.readonly'
+  'https://www.googleapis.com/auth/calendar.readonly',
+  'https://www.googleapis.com/auth/drive.file'
 ];
 
 /**
@@ -142,6 +143,54 @@ export async function astraCalendar(query: string, action: string = 'list', deta
   }
 
   return "Calendar action not supported.";
+}
+
+import { Readable } from 'stream';
+
+export async function astraDrive(fileName: string, mimeType: string, buffer: Buffer) {
+  const tokens = await loadTokens();
+  if (!tokens) throw new Error('Google account not connected');
+  
+  oauth2Client.setCredentials(tokens);
+  const drive = google.drive({ version: 'v3', auth: oauth2Client });
+
+  // 1. Find or Create "Astra Vault" folder
+  let folderId = '';
+  const folderRes = await drive.files.list({
+    q: "name = 'Astra Vault' and mimeType = 'application/vnd.google-apps.folder'",
+    fields: 'files(id)'
+  });
+
+  if (folderRes.data.files && folderRes.data.files.length > 0) {
+    folderId = folderRes.data.files[0].id!;
+  } else {
+    const folder = await drive.files.create({
+      requestBody: {
+        name: 'Astra Vault',
+        mimeType: 'application/vnd.google-apps.folder'
+      },
+      fields: 'id'
+    });
+    folderId = folder.data.id!;
+  }
+
+  // 2. Upload File
+  const fileMetadata = {
+    name: fileName,
+    parents: [folderId]
+  };
+  const media = {
+    mimeType: mimeType,
+    body: Readable.from(buffer)
+  };
+
+  const file = await drive.files.create({
+    requestBody: fileMetadata,
+    media: media,
+    fields: 'id, webViewLink'
+  });
+
+  return file.data.webViewLink;
 }
 
 export { oauth2Client };

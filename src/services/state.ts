@@ -1,9 +1,11 @@
 export interface SessionAction {
   id: string;
   label: string;
-  type: 'GMAIL' | 'CALENDAR' | 'REMINDER' | 'CANCEL';
+  type: 'GMAIL' | 'CALENDAR' | 'REMINDER' | 'DRIVE' | 'CANCEL';
   data: any;
   summary: string;
+  buffer?: Buffer;
+  mimeType?: string;
 }
 
 class GlobalState {

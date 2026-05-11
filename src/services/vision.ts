@@ -23,12 +23,13 @@ export async function analyzeImage(imageBuffer: Buffer, mimeType: string): Promi
       
       Output ONLY valid JSON in the AstraIntent format:
       {
-        "type": "GMAIL|CALENDAR|REMINDER|UNKNOWN",
+        "type": "GMAIL|CALENDAR|REMINDER|DRIVE|UNKNOWN",
         "summary": "Human summary of what you see",
         "data": { ... },
         "confidence": 0.9,
         "suggested_actions": [
-          { "id": "1", "label": "🚀 Action", "type": "...", "data": { ... } }
+          { "id": "1", "label": "📁 File in Vault", "type": "DRIVE", "summary": "Save this document to Google Drive", "data": { "action": "upload", "fileName": "..." } },
+          { "id": "2", "label": "🚀 Action", "type": "...", "summary": "...", "data": { ... } }
         ]
       }
     `;

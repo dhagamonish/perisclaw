@@ -4,6 +4,7 @@ import { initializeWhatsApp } from './services/whatsapp.js';
 import { startDashboard } from './services/dashboard.js';
 import { startupReminderSweep } from './services/reminders.js';
 import { state } from './services/state.js';
+import { setupProactiveTasks } from './services/proactive.js';
 
 async function main() {
   logger.info('Astra EA starting...');
@@ -22,6 +23,7 @@ async function main() {
   const activeSock = state.getSock();
   if (activeSock) {
     await startupReminderSweep(activeSock);
+    setupProactiveTasks();
   }
   
   logger.info('Astra EA Bridge Active. Waiting for messages...');

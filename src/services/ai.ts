@@ -7,7 +7,7 @@ import os from 'os';
 
 const groq = new Groq({ apiKey: env.GROQ_API_KEY });
 
-export type IntentType = 'CALENDAR' | 'GMAIL' | 'REMINDER' | 'CLARIFY' | 'UNKNOWN';
+export type IntentType = 'CALENDAR' | 'GMAIL' | 'REMINDER' | 'CLARIFY' | 'MEMORY_QUERY' | 'UNKNOWN';
 
 export interface AstraIntent {
   type: IntentType;
@@ -27,7 +27,8 @@ Supported Intent Types:
 2. GMAIL: Sending, drafting, or searching emails.
 3. REMINDER: Setting follow-up tasks.
 4. CLARIFY: When critical info is missing.
-5. UNKNOWN: Chatter or unintelligible.
+5. MEMORY_QUERY: When the user asks about past promises, information, or "what did I say/do".
+6. UNKNOWN: Chatter or unintelligible.
 
 Output JSON Format:
 {
