@@ -136,9 +136,10 @@ async function handleIntent(sock: any, msg: any, intent: any) {
   if (actions.length > 0) {
     state.setSession(msg.key.remoteJid!, actions);
     let menu = `🕵️‍♂️ *Astra Intelligence Hub*\n\n${intent.summary}\n\n*What should I do?*\n`;
-    actions.forEach((a: any) => {
-      const id = a.id || a.option_id || a.index || '?';
-      const label = a.label || a.text || a.action || 'Unknown Action';
+    logger.info({ actions: intent.suggested_actions }, 'Rendering Action Menu');
+    actions.forEach((a: any, index: number) => {
+      const id = a.id || a.option_id || (index + 1).toString();
+      const label = a.label || a.text || a.action || intent.summary || 'Execute';
       menu += `\n${id}. ${label}`;
     });
     menu += `\n\n_Reply with the number to execute._`;
