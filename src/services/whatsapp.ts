@@ -173,9 +173,10 @@ export async function initializeWhatsApp() {
                 }
                 
                 clearPendingAction(msg.key.remoteJid!);
-              } catch (err) {
-                logger.error(err, 'Failed to execute confirmed action');
-                await sock.sendMessage(msg.key.remoteJid!, { text: 'Stoic Error: Execution failed.' });
+              } catch (err: any) {
+                const errMsg = err.message || 'Unknown error';
+                logger.error({ error: errMsg }, 'Action execution failed');
+                await sock.sendMessage(msg.key.remoteJid!, { text: `❌ *Stoic failure:* ${errMsg}. Please try "authorize" again.` });
               }
             }
           }
