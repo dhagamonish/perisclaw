@@ -14,6 +14,8 @@ export interface AstraIntent {
   summary: string;
   data: any;
   confidence: number;
+  suggested_actions?: any[];
+  extracted_memories?: any[];
 }
 
 const SYSTEM_PROMPT = `
@@ -34,17 +36,16 @@ Output JSON Format:
   "summary": "Short summary",
   "data": { ... },
   "confidence": 0.0 to 1.0,
-  "suggested_actions": [
-    { "id": "1", "label": "🚀 Send Now", "type": "GMAIL", "data": { "action": "send", ... } },
-    { "id": "2", "label": "📝 Save Draft", "type": "GMAIL", "data": { "action": "draft", ... } }
+  "suggested_actions": [ ... ],
+  "extracted_memories": [
+    { "content": "I promised to send the report", "type": "COMMITMENT", "due_at": "ISO_UTC" }
   ]
 }
 
 IMPORTANT RULES:
-- ALWAYS provide at least 2-3 'suggested_actions' for GMAIL and CALENDAR requests.
-- For GMAIL, include both 'send' and 'draft' as separate options.
-- Use high-impact emojis in the 'label'.
-- For 'CLARIFY', do not provide suggested actions.
+- ALWAYS look for implicit promises (e.g. "I'll call you later") or facts (e.g. "My flight is tomorrow") and include them in 'extracted_memories'.
+- For GMAIL and CALENDAR, always provide at least 2-3 interactive options.
+- Use high-impact emojis in labels.
 - Output ONLY valid JSON.
 `;
 

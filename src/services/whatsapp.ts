@@ -100,8 +100,22 @@ export async function initializeWhatsApp() {
   });
 }
 
+import { addMemory } from './memory.js';
+
 async function handleIntent(sock: any, msg: any, intent: any) {
   if (intent.type === 'UNKNOWN') return;
+
+  // SILENT MEMORY SAVE
+  if (intent.extracted_memories && intent.extracted_memories.length > 0) {
+    for (const mem of intent.extracted_memories) {
+      await addMemory({
+        user_jid: msg.key.remoteJid!,
+        content: mem.content,
+        type: mem.type || 'INFO',
+        due_at: mem.due_at
+      }).catch(e => logger.error(e, 'Failed to save implicit memory'));
+    }
+  }
 
   if (intent.type === 'CLARIFY') {
     await sock.sendMessage(msg.key.remoteJid!, { text: `🤔 *Astra Needs Clarity*\n\n${intent.summary}` });
