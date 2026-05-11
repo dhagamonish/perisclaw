@@ -72,18 +72,26 @@ export async function astraGmail(query: string, action: string = 'search', detai
     return summary;
   } 
   
-  if (action === 'draft') {
+  if (action === 'draft' || action === 'send') {
     const raw = Buffer.from(
       `To: ${details.to}\r\n` +
       `Subject: ${details.subject}\r\n\r\n` +
       `${details.body}`
     ).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
-    await gmail.users.drafts.create({
-      userId: 'me',
-      requestBody: { message: { raw } }
-    });
-    return `Draft created for ${details.to}. Subject: ${details.subject}`;
+    if (action === 'draft') {
+      await gmail.users.drafts.create({
+        userId: 'me',
+        requestBody: { message: { raw } }
+      });
+      return `Draft created for ${details.to}. Subject: ${details.subject}`;
+    } else {
+      await gmail.users.messages.send({
+        userId: 'me',
+        requestBody: { raw }
+      });
+      return `Email sent successfully to ${details.to}! 🚀`;
+    }
   }
 
   return "Action not yet supported.";

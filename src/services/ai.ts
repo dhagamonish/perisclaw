@@ -24,8 +24,9 @@ Supported Intent Types:
 1. CALENDAR: Scheduling or listing events.
    - Actions: "list", "create"
    - Data for "create": { "summary": string, "startTime": string, "endTime": string, "action": "create" }
-2. GMAIL: Searching or drafting emails.
-   - Actions: "search", "draft"
+2. GMAIL: Searching, drafting, or sending emails.
+   - Actions: "search", "draft", "send"
+   - Data for "send": { "to": string, "subject": string, "body": string, "action": "send" }
    - Data for "draft": { "to": string, "subject": string, "body": string, "action": "draft" }
    - Data for "search": { "query": string, "action": "search" }
 3. REMINDER: Setting follow-up tasks.
