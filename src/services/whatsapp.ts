@@ -164,11 +164,11 @@ export async function initializeWhatsApp() {
                   await sock.sendMessage(msg.key.remoteJid!, { text: 'Stoic success: Reminder set.' });
                 } else if (pending.type === 'GMAIL') {
                   await sock.sendMessage(msg.key.remoteJid!, { text: 'Astra is searching your Gmail...' });
-                  const result = await astraGmail(pending.data.query, pending.data.action || 'search');
+                  const result = await astraGmail(pending.data.query, pending.data.action || 'search', pending.data);
                   await sock.sendMessage(msg.key.remoteJid!, { text: `📧 *Gmail Result*\n\n${result}` });
                 } else if (pending.type === 'CALENDAR') {
                   await sock.sendMessage(msg.key.remoteJid!, { text: 'Astra is checking your Calendar...' });
-                  const result = await astraCalendar(pending.data.query || pending.summary);
+                  const result = await astraCalendar(pending.data.query || pending.summary, pending.data.action || 'list', pending.data);
                   await sock.sendMessage(msg.key.remoteJid!, { text: `📅 *Calendar Result*\n\n${result}` });
                 }
                 

@@ -52,7 +52,7 @@ export function getAuthUrl() {
   });
 }
 
-export async function astraGmail(query: string, action: string = 'search') {
+export async function astraGmail(query: string, action: string = 'search', details?: any) {
   const tokens = await loadTokens();
   if (!tokens) throw new Error('Google account not connected');
   
@@ -70,34 +70,66 @@ export async function astraGmail(query: string, action: string = 'search') {
       summary += `- ${subject}\n`;
     }
     return summary;
+  } 
+  
+  if (action === 'draft') {
+    const raw = Buffer.from(
+      `To: ${details.to}\r\n` +
+      `Subject: ${details.subject}\r\n\r\n` +
+      `${details.body}`
+    ).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+
+    await gmail.users.drafts.create({
+      userId: 'me',
+      requestBody: { message: { raw } }
+    });
+    return `Draft created for ${details.to}. Subject: ${details.subject}`;
   }
+
   return "Action not yet supported.";
 }
 
-export async function astraCalendar(query: string) {
+export async function astraCalendar(query: string, action: string = 'list', details?: any) {
   const tokens = await loadTokens();
   if (!tokens) throw new Error('Google account not connected');
   
   oauth2Client.setCredentials(tokens);
   const calendar = google.calendar({ version: 'v3', auth: oauth2Client });
 
-  const res = await calendar.events.list({
-    calendarId: 'primary',
-    timeMin: new Date().toISOString(),
-    maxResults: 5,
-    singleEvents: true,
-    orderBy: 'startTime',
-  });
+  if (action === 'list') {
+    const res = await calendar.events.list({
+      calendarId: 'primary',
+      timeMin: new Date().toISOString(),
+      maxResults: 5,
+      singleEvents: true,
+      orderBy: 'startTime',
+    });
 
-  const events = res.data.items;
-  if (!events || events.length === 0) return "Your calendar is clear.";
+    const events = res.data.items;
+    if (!events || events.length === 0) return "Your calendar is clear.";
 
-  let summary = "Upcoming events:\n";
-  events.forEach(event => {
-    const start = event.start?.dateTime || event.start?.date;
-    summary += `- ${event.summary} (${start})\n`;
-  });
-  return summary;
+    let summary = "Upcoming events:\n";
+    events.forEach(event => {
+      const start = event.start?.dateTime || event.start?.date;
+      summary += `- ${event.summary} (${start})\n`;
+    });
+    return summary;
+  }
+
+  if (action === 'create') {
+    const res = await calendar.events.insert({
+      calendarId: 'primary',
+      requestBody: {
+        summary: details.summary,
+        description: details.description || 'Created by Astra EA',
+        start: { dateTime: details.startTime, timeZone: 'UTC' },
+        end: { dateTime: details.endTime, timeZone: 'UTC' },
+      },
+    });
+    return `Event created: ${details.summary} at ${details.startTime}`;
+  }
+
+  return "Calendar action not supported.";
 }
 
 export { oauth2Client };
