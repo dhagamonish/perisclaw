@@ -16,6 +16,8 @@ import { astraGmail, astraCalendar, astraDrive } from './google.js';
 import { useSupabaseAuthState } from './auth.js';
 import { addMemory, searchMemories } from './memory.js';
 import { analyzeImage } from './vision.js';
+import { checkRateLimit } from './limiter.js';
+import { broadcastQR, broadcastConnectionOpen } from './dashboard.js';
 
 export async function initializeWhatsApp() {
   const { state: authState, saveCreds } = await useSupabaseAuthState('astra_production_v1');
@@ -33,12 +35,21 @@ export async function initializeWhatsApp() {
 
   state.setSock(sock);
 
+  // HEARTBEAT: Keep socket alive every 5 mins
+  setInterval(async () => {
+    if (sock.user) {
+      await sock.sendPresenceUpdate('available');
+      logger.info('Heartbeat: Connection refreshed');
+    }
+  }, 5 * 60 * 1000);
+
   sock.ev.on('creds.update', saveCreds);
 
   sock.ev.on('connection.update', (update) => {
     const { connection, lastDisconnect, qr } = update;
     if (qr) {
       logger.info('New QR Code received.');
+      broadcastQR(qr);
       qrcode.generate(qr, { small: true });
     }
 
@@ -54,6 +65,7 @@ export async function initializeWhatsApp() {
       }
     } else if (connection === 'open') {
       logger.info('WhatsApp Connection Opened Successfully');
+      broadcastConnectionOpen();
       startupReminderSweep(sock);
     }
   });
@@ -87,6 +99,12 @@ export async function initializeWhatsApp() {
         }
 
         try {
+          // Rate Limit Check
+          if (!checkRateLimit(msg.key.remoteJid!)) {
+            logger.warn('Rate limit hit for user: ' + msg.key.remoteJid);
+            continue;
+          }
+
           // INTERACTIVE CHOICE HANDLING
           const currentSession = state.getSession(msg.key.remoteJid!);
           const choice = text.trim();
