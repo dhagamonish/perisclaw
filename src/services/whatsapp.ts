@@ -14,6 +14,8 @@ import { state, SessionAction } from './state.js';
 import { addReminder, scheduleReminder, startupReminderSweep } from './reminders.js';
 import { astraGmail, astraCalendar } from './google.js';
 import { useSupabaseAuthState } from './auth.js';
+import { addMemory } from './memory.js';
+import { analyzeImage } from './vision.js';
 
 export async function initializeWhatsApp() {
   const { state: authState, saveCreds } = await useSupabaseAuthState('astra_production_v1');
@@ -66,6 +68,15 @@ export async function initializeWhatsApp() {
 
         let text = msg.message?.conversation || msg.message?.extendedTextMessage?.text || '';
         
+        // Handle Images
+        if (!text && msg.message?.imageMessage) {
+          logger.info('Processing Image Message...');
+          const buffer = await downloadMediaMessage(msg, 'buffer', {});
+          const intent = await analyzeImage(buffer as Buffer, 'image/jpeg');
+          if (intent) await handleIntent(sock, msg, intent);
+          continue;
+        }
+
         // Handle Voice Notes
         if (!text && msg.message?.audioMessage) {
           logger.info('Processing Voice Note...');
@@ -99,8 +110,6 @@ export async function initializeWhatsApp() {
     }
   });
 }
-
-import { addMemory } from './memory.js';
 
 async function handleIntent(sock: any, msg: any, intent: any) {
   if (intent.type === 'UNKNOWN') return;
