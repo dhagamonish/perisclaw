@@ -19,12 +19,9 @@ async function main() {
 
   // Start Reminder Polling (every 60 seconds)
   setInterval(async () => {
-    await checkReminders(async (reminder) => {
-      logger.info({ reminderId: reminder.id }, 'Sending due reminder to WhatsApp');
-      await sock.sendMessage(reminder.user_jid, { 
-        text: `🚨 *STRICT REMINDER*\n\n${reminder.text}\n\nAction required.` 
-      });
-    });
+    if (sock) {
+      await checkReminders(sock);
+    }
   }, 60000);
   
   logger.info('Astra EA Bridge Active. Waiting for messages...');

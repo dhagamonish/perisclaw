@@ -28,27 +28,38 @@ export async function addReminder(reminder: Reminder) {
 }
 
 // Polling function to check for due reminders
-export async function checkReminders(onDue: (reminder: Reminder) => Promise<void>) {
+export async function checkReminders(sock: any) {
+  const now = new Date().toISOString();
+  logger.info({ now }, 'Engine: Checking for due reminders');
+
   const { data, error } = await supabase
     .from('reminders')
     .select('*')
     .eq('status', 'PENDING')
-    .lte('due_at', new Date().toISOString());
+    .lte('due_at', now);
 
   if (error) {
-    logger.error(error, 'Error polling reminders');
+    logger.error(error, 'Engine: Failed to fetch reminders');
     return;
   }
 
-  for (const reminder of (data || [])) {
-    try {
-      await onDue(reminder);
-      await supabase
-        .from('reminders')
-        .update({ status: 'SENT' })
-        .eq('id', reminder.id);
-    } catch (err) {
-      logger.error(err, 'Failed to process due reminder');
+  if (data && data.length > 0) {
+    logger.info({ count: data.length }, 'Engine: Found due reminders! Sending now...');
+    for (const reminder of data) {
+      try {
+        await sock.sendMessage(reminder.user_jid, {
+          text: `🚨 *STRICT REMINDER*\n\n${reminder.text}\n\nAction required.`
+        });
+
+        await supabase
+          .from('reminders')
+          .update({ status: 'SENT' })
+          .eq('id', reminder.id);
+          
+        logger.info({ id: reminder.id }, 'Engine: Reminder sent and marked as done');
+      } catch (err) {
+        logger.error(err, 'Engine: Failed to send reminder message');
+      }
     }
   }
 }
