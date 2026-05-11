@@ -67,13 +67,20 @@ export async function initializeWhatsApp() {
     }
 
     if (connection === 'close') {
-      const shouldReconnect = (lastDisconnect?.error as Boom)?.output?.statusCode !== DisconnectReason.loggedOut;
-      logger.warn({ reason: lastDisconnect?.error, shouldReconnect }, 'Connection closed');
+      const statusCode = (lastDisconnect?.error as Boom)?.output?.statusCode;
+      const shouldReconnect = statusCode !== DisconnectReason.loggedOut;
+      const isConflict = statusCode === DisconnectReason.connectionReplaced;
+      
+      logger.warn({ statusCode, isConflict, shouldReconnect }, 'Connection closed');
       
       if (shouldReconnect) {
-        initializeWhatsApp();
+        const delay = isConflict ? 30000 : 5000;
+        if (isConflict) logger.warn('Connection conflict detected (double-instance?). Waiting 30s before retrying...');
+        
+        setTimeout(() => initializeWhatsApp(), delay);
       }
-    } else if (connection === 'open') {
+    }
+ else if (connection === 'open') {
       logger.info('WhatsApp Connection Opened Successfully');
       startupReminderSweep(sock);
     }
