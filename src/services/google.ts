@@ -73,10 +73,14 @@ export async function astraGmail(query: string, action: string = 'search', detai
   } 
   
   if (action === 'draft' || action === 'send') {
+    if (!details?.to) {
+      throw new Error('No recipient email address found. Please specify who to send to.');
+    }
+
     const raw = Buffer.from(
       `To: ${details.to}\r\n` +
-      `Subject: ${details.subject}\r\n\r\n` +
-      `${details.body}`
+      `Subject: ${details.subject || '(No Subject)'}\r\n\r\n` +
+      `${details.body || ''}`
     ).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
 
     if (action === 'draft') {
