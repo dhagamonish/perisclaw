@@ -1,4 +1,4 @@
-import { createClient } from '@supabase/supabase-core';
+import { createClient } from '@supabase/supabase-js';
 import { env } from '../config/env.js';
 import logger from './logger.js';
 
