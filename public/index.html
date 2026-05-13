@@ -12,9 +12,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&display=swap" rel="stylesheet"/>
     <!-- Tailwind -->
     <script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+    
+    <!-- 3D Background Engine: Three.js + Vanta.js -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/vanta@latest/dist/vanta.globe.min.js"></script>
+    
     <!-- GSAP for Parallax -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    
     <script id="tailwind-config">
         tailwind.config = {
             darkMode: "class",
@@ -73,32 +79,19 @@
             50% { transform: translateY(-20px); }
             100% { transform: translateY(0px); }
         }
-        #bg-video-container {
+        #vanta-bg {
             position: fixed;
             top: 0;
             left: 0;
             width: 100%;
-            height: 120%; /* Extra height for parallax movement */
+            height: 100vh;
             z-index: -2;
-            overflow: hidden;
-            background: #fbf9f8;
-        }
-        #bg-video {
-            width: 100%;
-            height: 100%;
-            object-fit: cover;
-            opacity: 0.4; /* Soft cinematic feel */
-            filter: grayscale(20%) contrast(110%);
         }
     </style>
 </head>
 <body class="bg-background text-on-background selection:bg-primary selection:text-white overflow-x-hidden font-body">
-    <!-- Cinematic Video Layer -->
-    <div id="bg-video-container">
-        <video id="bg-video" autoplay loop muted playsinline>
-            <source src="/assets/hero-bg.mp4" type="video/mp4">
-        </video>
-    </div>
+    <!-- 3D Global Intelligence Background -->
+    <div id="vanta-bg"></div>
 
     <!-- Dot Matrix Grid Background -->
     <div class="fixed inset-0 dot-matrix pointer-events-none z-0"></div>
@@ -140,10 +133,10 @@
                     </div>
                     <div class="space-y-3">
                         <div class="bg-surface-container-low p-3 rounded-xl rounded-tl-none text-left">
-                            <p class="text-[12px] text-on-surface-variant leading-snug">Astra, check my calendar.</p>
+                            <p class="text-[12px] text-on-surface-variant leading-snug">Astra, check my inbox.</p>
                         </div>
                         <div class="bg-primary/10 p-3 rounded-xl rounded-tr-none text-right ml-8">
-                            <p class="text-[12px] text-primary leading-snug font-medium">Link Established.</p>
+                            <p class="text-[12px] text-primary leading-snug font-medium">Synced 3 new emails.</p>
                         </div>
                     </div>
                 </div>
@@ -190,7 +183,7 @@
         <!-- Bento Grid Section -->
         <section class="max-w-container-max mx-auto px-margin-desktop py-24">
             <div class="grid grid-cols-1 md:grid-cols-12 gap-6">
-                <div class="md:col-span-8 bg-surface-container-lowest p-12 rounded-3xl shadow-bento border border-outline-variant/10 group hover:shadow-bento-hover transition-all">
+                <div class="md:col-span-8 bg-surface-container-lowest/80 backdrop-blur-lg p-12 rounded-3xl shadow-bento border border-outline-variant/10 group hover:shadow-bento-hover transition-all">
                     <div class="max-w-md">
                         <div class="w-12 h-12 bg-primary/10 rounded-xl flex items-center justify-center mb-6">
                             <span class="material-symbols-outlined text-primary">hub</span>
@@ -200,7 +193,7 @@
                     </div>
                 </div>
                 <div class="md:col-span-4 space-y-6">
-                    <div class="bg-surface-container-lowest p-8 rounded-3xl shadow-bento border border-outline-variant/10 hover:shadow-bento-hover transition-all">
+                    <div class="bg-surface-container-lowest/80 backdrop-blur-lg p-8 rounded-3xl shadow-bento border border-outline-variant/10 hover:shadow-bento-hover transition-all">
                         <div class="w-10 h-10 bg-primary/10 rounded-lg flex items-center justify-center mb-4">
                             <span class="material-symbols-outlined text-primary">lock</span>
                         </div>
@@ -222,7 +215,7 @@
         </section>
     </main>
 
-    <footer class="border-t border-outline-variant/30 py-16 bg-white relative z-20">
+    <footer class="border-t border-outline-variant/30 py-16 bg-white/80 backdrop-blur-xl relative z-20">
         <div class="flex flex-col md:flex-row justify-between items-center px-margin-desktop max-w-container-max mx-auto gap-8">
             <div class="flex flex-col gap-2">
                 <div class="font-headline text-xl font-bold text-on-surface">Astra AI</div>
@@ -235,18 +228,30 @@
     </footer>
 
     <script>
-        // PARALLAX ENGINE
-        gsap.registerPlugin(ScrollTrigger);
+        // VANTA GLOBE INITIALIZATION
+        VANTA.GLOBE({
+          el: "#vanta-bg",
+          mouseControls: true,
+          touchControls: true,
+          gyroControls: false,
+          minHeight: 200.00,
+          minWidth: 200.00,
+          scale: 1.00,
+          scaleMobile: 1.00,
+          color: 0x0050cb, // Astra Electric Blue
+          color2: 0x000000,
+          size: 1.2,
+          backgroundColor: 0xfbf9f8
+        });
 
-        gsap.to("#bg-video", {
-            yPercent: 20,
-            ease: "none",
-            scrollTrigger: {
-                trigger: "body",
-                start: "top top",
-                end: "bottom bottom",
-                scrub: true
-            }
+        // GSAP for subtle element entries
+        gsap.registerPlugin(ScrollTrigger);
+        gsap.from(".glass-card", {
+            y: 40,
+            opacity: 0,
+            duration: 1,
+            stagger: 0.2,
+            ease: "power3.out"
         });
     </script>
 </body>
